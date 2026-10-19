@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0b1018" />
+    <title>Pulse — System overview</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar">
+        <a class="brand" href="#" aria-label="Pulse home">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 32 32" fill="none">
+              <path d="M4 17h6l3.2-8 5.2 15 3.4-9H28" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+          </span>
+          <span>pulse<span class="brand-period">.</span></span>
+        </a>
+
+        <div class="workspace-label">WORKSPACE</div>
+        <nav class="side-nav" aria-label="Main navigation">
+          <a class="nav-item active" href="#">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="3" width="5" height="5" rx="1" /><rect x="12" y="3" width="5" height="5" rx="1" /><rect x="3" y="12" width="5" height="5" rx="1" /><rect x="12" y="12" width="5" height="5" rx="1" /></svg>
+            <span>Overview</span>
+          </a>
+          <a class="nav-item" href="#">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="4" width="14" height="12" rx="2" /><path d="M7 16v2m6-2v2M7 8h6m-6 3h3" /></svg>
+            <span>Devices</span>
+            <span class="nav-count">1</span>
+          </a>
+          <a class="nav-item" href="#">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M10 17s6-3.2 6-8V5l-6-2-6 2v4c0 4.8 6 8 6 8Z" /><path d="M10 7v3m0 3h.01" /></svg>
+            <span>Alerts</span>
+            <span class="alert-count" hidden>0</span>
+          </a>
+          <a class="nav-item" href="#">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M3 15V5m0 10h14M6 12l3-3 2 2 5-5" /></svg>
+            <span>History</span>
+          </a>
+        </nav>
+
+        <div class="sidebar-bottom">
+          <div class="agent-card">
+            <div class="agent-card-top">
+              <span class="agent-pulse"><span></span></span>
+              <span>Agent status</span>
+              <span class="agent-online">Starting…</span>
+            </div>
+            <p>All systems reporting normally.</p>
+            <div class="agent-version">MONITOR VERSION <span>Loading…</span></div>
+          </div>
+          <a class="nav-item settings-item" href="#">
+            <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3" /><path d="m16.1 11.7 1.1.8-1.5 2.6-1.3-.5a6 6 0 0 1-1.6.9l-.2 1.4h-3l-.2-1.4a6 6 0 0 1-1.6-.9l-1.3.5L5 12.5l1.1-.8a6 6 0 0 1 0-1.8L5 9.1l1.5-2.6 1.3.5a6 6 0 0 1 1.6-.9l.2-1.4h3l.2 1.4a6 6 0 0 1 1.6.9l1.3-.5 1.5 2.6-1.1.8a6 6 0 0 1 0 1.8Z" transform="translate(-1 -1)" /></svg>
+            <span>Settings</span>
+          </a>
+          <div class="profile">
+            <div class="avatar">ML</div>
+            <div class="profile-copy"><strong>Local user</strong><span>Local dashboard</span></div>
+            <button class="icon-button profile-more" aria-label="Profile options">
+              <svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="4" cy="10" r="1" /><circle cx="10" cy="10" r="1" /><circle cx="16" cy="10" r="1" /></svg>
+            </button>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <header class="topbar">
+          <div class="breadcrumbs"><span>Workspace</span><span class="breadcrumb-divider">/</span><strong>Overview</strong></div>
+          <div class="topbar-actions">
+            <div class="connection"><span class="status-dot"></span> Local monitor</div>
+            <button class="icon-button topbar-bell" aria-label="Notifications">
+              <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M15 7a5 5 0 0 0-10 0c0 6-2 6-2 7h14c0-1-2-1-2-7Zm-7 10h4" /></svg>
+              <span class="notification-dot" hidden></span>
+            </button>
+            <div class="top-avatar">ML</div>
+          </div>
+        </header>
+
+        <div class="dashboard">
+          <section class="page-heading">
+            <div>
+              <div class="eyebrow"><span class="heading-line"></span> LIVE MONITORING</div>
+              <h1 id="overview">System overview</h1>
+              <p class="page-subtitle">A real-time pulse on your machine’s performance.</p>
+            </div>
+            <div class="device-select" id="device">
+              <span class="device-icon"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="3" width="14" height="11" rx="2" /><path d="M7 17h6m-3-3v3" /></svg></span>
+              <span class="device-select-copy"><strong>Connecting…</strong><small>This computer</small></span>
+              <svg class="chevron" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 6 4 4 4-4" /></svg>
+            </div>
+          </section>
+
+          <section class="device-status" aria-label="Device connection status">
+            <span class="status-check"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 8 2.5 2.5L12 5" /></svg></span>
+            <span>Connecting to the local monitor…</span>
+            <span class="status-live"><span></span> CONNECTING</span>
+          </section>
+
+          <section class="metrics-grid" aria-label="Current system metrics">
+            <article class="metric-card">
+              <div class="metric-card-header">
+                <div class="metric-label"><span class="metric-icon cpu-icon"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="5" y="5" width="10" height="10" rx="2" /><path d="M8 8h4v4H8zM7 2v3m6-3v3M7 15v3m6-3v3M2 7h3m-3 6h3m10-6h3m-3 6h3" /></svg></span> CPU</div>
+                <button class="icon-button card-more" aria-label="CPU options"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="4" cy="10" r="1" /><circle cx="10" cy="10" r="1" /><circle cx="16" cy="10" r="1" /></svg></button>
+              </div>
+              <div class="meter-layout">
+                <div class="meter" style="--meter-value: 0%; --meter-color: #7c8cff;" role="img" aria-label="CPU usage unavailable">
+                  <div class="meter-center"><strong>—</strong><small>USAGE</small></div>
+                </div>
+                <div class="metric-detail"><span class="metric-state state-unavailable"><i></i> Connecting</span><strong>— <small>GHz</small></strong><span class="detail-label">Current speed</span></div>
+              </div>
+              <div class="metric-footer"><span>Waiting for processor details</span><span>— cores</span></div>
+              <div class="sparkline spark-cpu" aria-hidden="true"><svg viewBox="0 0 320 38" preserveAspectRatio="none"><path class="spark-fill" d="" /><path class="spark-stroke" d="" /></svg></div>
+            </article>
+
+            <article class="metric-card">
+              <div class="metric-card-header">
+                <div class="metric-label"><span class="metric-icon gpu-icon"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="5" width="14" height="10" rx="2" /><circle cx="10" cy="10" r="3" /><path d="M6 3v2m4-2v2m4-2v2m-8 10v2m4-2v2m4-2v2M17 8h2m-2 4h2" /></svg></span> GPU</div>
+                <button class="icon-button card-more" aria-label="GPU options"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="4" cy="10" r="1" /><circle cx="10" cy="10" r="1" /><circle cx="16" cy="10" r="1" /></svg></button>
+              </div>
+              <div class="meter-layout">
+                <div class="meter" style="--meter-value: 0%; --meter-color: #46d6ba;" role="img" aria-label="GPU usage unavailable">
+                  <div class="meter-center"><strong>—</strong><small>USAGE</small></div>
+                </div>
+                <div class="metric-detail"><span class="metric-state state-unavailable"><i></i> Connecting</span><strong>—<small></small></strong><span class="detail-label">Temperature</span></div>
+              </div>
+              <div class="metric-footer"><span>Detecting graphics adapters</span><span>VRAM unavailable</span></div>
+              <div class="sparkline spark-gpu" aria-hidden="true"><svg viewBox="0 0 320 38" preserveAspectRatio="none"><path class="spark-fill" d="" /><path class="spark-stroke" d="" /></svg></div>
+            </article>
+
+            <article class="metric-card memory-card">
+              <div class="metric-card-header">
+                <div class="metric-label"><span class="metric-icon memory-icon"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="6" width="14" height="9" rx="2" /><path d="M6 9h2v3H6zm5 0h3v3h-3zM6 3v3m4-3v3m4-3v3M6 15v2m4-2v2m4-2v2" /></svg></span> MEMORY</div>
+                <button class="icon-button card-more" aria-label="Memory options"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="4" cy="10" r="1" /><circle cx="10" cy="10" r="1" /><circle cx="16" cy="10" r="1" /></svg></button>
+              </div>
+              <div class="memory-reading"><strong>—</strong><span>GB <i>/</i> — GB</span></div>
+              <div class="memory-bar" role="img" aria-label="Memory usage unavailable"><span></span></div>
+              <div class="memory-meta"><span>Waiting for data</span><span>— available</span></div>
+              <div class="memory-trend">
+                <div class="memory-trend-copy"><span class="metric-state state-unavailable"><i></i> Connecting</span><small>Last hour</small></div>
+                <svg viewBox="0 0 120 38" preserveAspectRatio="none" aria-label="Memory usage trend" />
+              </div>
+            </article>
+          </section>
+
+          <section class="panel performance-panel" id="performance">
+            <div class="panel-heading">
+              <div>
+                <h2>Performance</h2>
+                <p>Resource utilization over time</p>
+              </div>
+              <div class="chart-controls">
+                <div class="chart-legend">
+                  <span><i class="legend-cpu"></i>CPU</span>
+                  <span><i class="legend-gpu"></i>GPU</span>
+                  <span><i class="legend-memory"></i>Memory</span>
+                </div>
+                <div class="range-switch" aria-label="Chart time range">
+                  <button>1H</button><button class="selected" aria-pressed="true">6H</button><button>24H</button><button>7D</button>
+                </div>
+              </div>
+            </div>
+            <div class="chart-wrap">
+              <div class="chart-y-labels" aria-hidden="true"><span>100%</span><span>75%</span><span>50%</span><span>25%</span><span>0%</span></div>
+              <div class="chart-plot">
+                <div class="chart-grid-lines" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
+                <svg class="main-chart" viewBox="0 0 900 220" preserveAspectRatio="none" role="img" aria-label="Live CPU, GPU, and memory utilization history">
+                  <defs>
+                    <linearGradient id="cpu-gradient" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#8390ff" stop-opacity=".19" /><stop offset="1" stop-color="#8390ff" stop-opacity="0" /></linearGradient>
+                    <linearGradient id="gpu-gradient" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#47d5ba" stop-opacity=".12" /><stop offset="1" stop-color="#47d5ba" stop-opacity="0" /></linearGradient>
+                  </defs>
+                  <path class="chart-area-cpu" d="" />
+                  <path class="chart-line-cpu" d="" />
+                  <path class="chart-area-gpu" d="" />
+                  <path class="chart-line-gpu" d="" />
+                  <path class="chart-line-memory" d="" />
+                  <circle class="chart-cursor" cx="0" cy="0" r="5" />
+                  <line class="chart-crosshair" x1="0" y1="0" x2="0" y2="220" />
+                </svg>
+                <div class="chart-tooltip" hidden><span></span><strong><i class="tooltip-cpu"></i> CPU <b>—</b></strong><strong><i class="tooltip-gpu"></i> GPU <b>—</b></strong><strong><i class="tooltip-memory"></i> Memory <b>—</b></strong></div>
+                <div class="chart-x-labels" aria-hidden="true"></div>
+              </div>
+            </div>
+          </section>
+
+          <section class="bottom-grid">
+            <article class="panel alerts-panel" id="alerts">
+              <div class="panel-heading compact-heading">
+                <div><h2>Recent alerts</h2><p>Latest system notifications</p></div>
+                <a href="#" class="text-link">View all <span>→</span></a>
+              </div>
+              <div class="alert-empty">Waiting for alert data…</div>
+            </article>
+
+            <article class="panel system-panel">
+              <div class="panel-heading compact-heading">
+                <div><h2>System details</h2><p>Hardware &amp; software</p></div>
+                <button class="icon-button card-more" aria-label="System details options"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="4" cy="10" r="1" /><circle cx="10" cy="10" r="1" /><circle cx="16" cy="10" r="1" /></svg></button>
+              </div>
+              <dl class="system-details">
+                <div><dt><span class="detail-icon"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="4" y="4" width="12" height="12" rx="2" /><path d="M7 7h6v6H7zM7 1v3m6-3v3M7 16v3m6-3v3M1 7h3m-3 6h3m12-6h3m-3 6h3" /></svg></span>Processor</dt><dd>Waiting for hardware details</dd></div>
+                <div><dt><span class="detail-icon"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="5" width="14" height="10" rx="2" /><circle cx="10" cy="10" r="3" /></svg></span>Graphics</dt><dd>Detecting graphics adapters</dd></div>
+                <div><dt><span class="detail-icon"><svg viewBox="0 0 20 20" aria-hidden="true"><rect x="3" y="4" width="14" height="12" rx="2" /><path d="M6 7h8M6 10h5M6 13h3" /></svg></span>Operating system</dt><dd>Waiting for system details</dd></div>
+                <div><dt><span class="detail-icon"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7" /><path d="M3 10h14M10 3a11 11 0 0 1 0 14M10 3a11 11 0 0 0 0 14" /></svg></span>Uptime</dt><dd>Waiting for system details</dd></div>
+              </dl>
+            </article>
+          </section>
+
+          <footer class="dashboard-footer"><span>Pulse Monitoring <span class="footer-dot">·</span> Local dashboard</span><span>Metrics are collected on this computer only</span></footer>
+        </div>
+      </main>
+    </div>
+    <script src="app.js?v=2" defer></script>
+  </body>
+</html>
