@@ -445,7 +445,7 @@ async function readWindowsGpuMetrics() {
   const script = [
     "$ErrorActionPreference = 'Stop'",
     "$engines = @(Get-CimInstance Win32_PerfFormattedData_GPUPerformanceCounters_GPUEngine | Select-Object Name,UtilizationPercentage)",
-    "$memory = @(Get-CimInstance Win32_PerfFormattedData_GPUPerformanceCounters_GPUAdapterMemory | Select-Object Name,DedicatedUsage,SharedUsage,TotalCommitted)",
+    "$memory = @(Get-CimInstance Win32_PerfFormattedData_GPUPerformanceCounters_GPUAdapterMemory | Select-Object Name,DedicatedUsage)",
     "$temperatures = @(); $temperatureError = $null",
     `$adlSource = @'\n${AMD_ADL_HELPER_SOURCE}\n'@`,
     "try { Add-Type -TypeDefinition $adlSource -ReferencedAssemblies System.Web.Extensions -ErrorAction Stop; $temperatures = @([PulseAmdTemperature]::Read() | ConvertFrom-Json) } catch { $temperatureError = $_.Exception.Message }",

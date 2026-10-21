@@ -209,7 +209,7 @@ function severityFor(percent, warning = 75, critical = 90) {
   return percent >= warning ? "warning" : "normal";
 }
 
-function updateMeter(card, percent, descriptor, color, statusText) {
+function updateMeter(card, percent, descriptor, statusText) {
   if (!card) {
     return;
   }
@@ -248,7 +248,6 @@ function updateCpu(metrics) {
     elements.cpuCard,
     cpu.utilizationPercent,
     "CPU usage",
-    "#7c8cff",
     "Normal",
   );
   const cpuSpeed = elements.cpuCard?.querySelector(".metric-detail > strong");
@@ -296,7 +295,6 @@ function updateGpu(metrics) {
     elements.gpuCard,
     gpu.utilizationPercent,
     "GPU usage",
-    "#46d6ba",
     gpu.error ? "Unavailable" : "Normal",
   );
   const metricDetail = elements.gpuCard?.querySelector(".metric-detail");
@@ -574,9 +572,6 @@ function updateMetrics(metrics) {
   updateGpu(metrics);
   updateMemory(metrics);
   setConnectedStatus(metrics.timestamp);
-  if (state.device) {
-    updateDevice(state.device, metrics);
-  }
   const latestHistoryPoint = {
     timestamp: metrics.timestamp,
     cpu: metrics.cpu.utilizationPercent,
@@ -597,7 +592,6 @@ async function initializeDashboard() {
     requestJson("/api/health"),
     loadHistory(),
   ]);
-  updateDevice(device, state.metrics);
   updateDevice(device, metrics);
   updateMetrics(metrics);
   setText(elements.agentVersion, `v${health.version}`);
@@ -700,10 +694,6 @@ function bindControls() {
       elements.navLinks.forEach((item) => item.classList.toggle("active", item === link));
     });
   });
-  elements.heading?.setAttribute("id", "overview");
-  elements.deviceSelect?.setAttribute("id", "device");
-  elements.alerts?.setAttribute("id", "alerts");
-  document.querySelector(".performance-panel")?.setAttribute("id", "performance");
 }
 
 bindControls();

@@ -610,11 +610,6 @@ h1 {
   height: 6px;
 }
 
-.status-live span span {
-  width: 3px;
-  height: 3px;
-}
-
 .metrics-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1301,16 +1296,6 @@ h1 {
   place-items: center;
   border: 1px solid;
   border-radius: 6px;
-}
-
-.alert-symbol svg {
-  width: 14px;
-  height: 14px;
-  fill: none;
-  stroke: currentColor;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.5;
 }
 
 .alert-warning {
