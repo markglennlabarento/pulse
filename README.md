@@ -25,8 +25,8 @@ To stop monitoring, press Ctrl+C in the terminal. Metrics history is stored on t
 
 - CPU usage, processor model, logical core count, and clock speed come from local operating-system counters.
 - RAM use and availability are sampled locally.
-- NVIDIA cards use `nvidia-smi` when available. Other Windows adapters are identified by their DXGI adapter LUID and matched to Windows per-adapter GPU-engine and memory counters. The card with dedicated video memory is shown as the primary GPU; integrated graphics remain visible in system details.
-- Unsupported GPU temperature or memory readings are shown as unavailable.
+- NVIDIA cards use `nvidia-smi` when available. AMD cards use the temperature sensor exposed by the installed Radeon driver; other Windows adapters are identified by their DXGI adapter LUID and matched to Windows per-adapter GPU-engine and memory counters. The card with dedicated video memory is shown as the primary GPU; integrated graphics remain visible in system details.
+- GPU temperature is available only when the vendor driver exposes a supported sensor. Unsupported GPU temperature or memory readings are shown as unavailable.
 - Dashboard updates are streamed over local Server-Sent Events at `/api/events`. JSON endpoints are `/api/health`, `/api/device`, `/api/metrics`, `/api/history?range=6h`, and `/api/alerts?limit=20`.
 - Samples are collected every two seconds; chart history is saved every ten seconds. History and alerts remain on this computer.
 - CPU, GPU, and memory alerts are raised when a threshold is exceeded continuously for ten seconds. Thresholds are defined near the top of `server.js`.

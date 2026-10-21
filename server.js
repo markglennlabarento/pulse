@@ -108,6 +108,91 @@ public static class PulseDxgiNative {
     return new JavaScriptSerializer().Serialize(adapters);
   }
 }`;
+const AMD_ADL_HELPER_SOURCE = String.raw`
+using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
+using System.Web.Script.Serialization;
+[UnmanagedFunctionPointer(CallingConvention.StdCall)]
+public delegate IntPtr PulseAdlMemoryAllocate(int size);
+[StructLayout(LayoutKind.Sequential, CharSet=CharSet.Ansi)]
+public struct PulseAdlAdapterInfo {
+  public int Size;
+  public int AdapterIndex;
+  [MarshalAs(UnmanagedType.ByValTStr, SizeConst=256)] public string UniqueId;
+  public int BusNumber;
+  public int DeviceNumber;
+  public int FunctionNumber;
+  public int VendorId;
+  [MarshalAs(UnmanagedType.ByValTStr, SizeConst=256)] public string AdapterName;
+  [MarshalAs(UnmanagedType.ByValTStr, SizeConst=256)] public string DisplayName;
+  public int Present;
+  public int Exists;
+  [MarshalAs(UnmanagedType.ByValTStr, SizeConst=256)] public string DriverPath;
+  [MarshalAs(UnmanagedType.ByValTStr, SizeConst=256)] public string DriverPathExtension;
+  [MarshalAs(UnmanagedType.ByValTStr, SizeConst=256)] public string PnpDeviceId;
+  public int OsDisplayIndex;
+}
+[StructLayout(LayoutKind.Sequential)]
+public struct PulseAdlTemperature {
+  public int Size;
+  public int Temperature;
+}
+public static class PulseAmdTemperature {
+  [DllImport("atiadlxx.dll", CallingConvention=CallingConvention.StdCall)]
+  private static extern int ADL_Main_Control_Create(PulseAdlMemoryAllocate callback, int enumerateConnectedAdapters);
+  [DllImport("atiadlxx.dll", CallingConvention=CallingConvention.StdCall)]
+  private static extern int ADL_Main_Control_Destroy();
+  [DllImport("atiadlxx.dll", CallingConvention=CallingConvention.StdCall)]
+  private static extern int ADL_Adapter_NumberOfAdapters_Get(ref int count);
+  [DllImport("atiadlxx.dll", CallingConvention=CallingConvention.StdCall)]
+  private static extern int ADL_Adapter_AdapterInfo_Get(IntPtr info, int inputSize);
+  [DllImport("atiadlxx.dll", CallingConvention=CallingConvention.StdCall)]
+  private static extern int ADL_Overdrive5_Temperature_Get(int adapterIndex, int thermalControllerIndex, ref PulseAdlTemperature temperature);
+  private static readonly PulseAdlMemoryAllocate MemoryAllocate =
+    delegate(int size) { return Marshal.AllocHGlobal(size); };
+
+  public static string Read() {
+    int status = ADL_Main_Control_Create(MemoryAllocate, 1);
+    if (status != 0) throw new InvalidOperationException("ADL initialization failed with code " + status);
+    try {
+      int count = 0;
+      status = ADL_Adapter_NumberOfAdapters_Get(ref count);
+      if (status != 0) throw new InvalidOperationException("ADL adapter enumeration failed with code " + status);
+      if (count <= 0) return "[]";
+
+      int size = Marshal.SizeOf(typeof(PulseAdlAdapterInfo));
+      IntPtr buffer = Marshal.AllocHGlobal(size * count);
+      try {
+        status = ADL_Adapter_AdapterInfo_Get(buffer, size * count);
+        if (status != 0) throw new InvalidOperationException("ADL adapter details failed with code " + status);
+
+        var readings = new List<object>();
+        for (int index = 0; index < count; index++) {
+          var adapter = (PulseAdlAdapterInfo)Marshal.PtrToStructure(
+            IntPtr.Add(buffer, index * size), typeof(PulseAdlAdapterInfo));
+          if (adapter.PnpDeviceId == null ||
+              !adapter.PnpDeviceId.StartsWith(@"PCI\VEN_1002&", StringComparison.OrdinalIgnoreCase)) continue;
+
+          var temperature = new PulseAdlTemperature();
+          temperature.Size = Marshal.SizeOf(typeof(PulseAdlTemperature));
+          status = ADL_Overdrive5_Temperature_Get(adapter.AdapterIndex, 0, ref temperature);
+          if (status != 0 || temperature.Temperature <= 0) continue;
+
+          readings.Add(new {
+            pnpDeviceId = adapter.PnpDeviceId,
+            temperatureC = temperature.Temperature / 1000.0
+          });
+        }
+        return new JavaScriptSerializer().Serialize(readings);
+      } finally {
+        Marshal.FreeHGlobal(buffer);
+      }
+    } finally {
+      ADL_Main_Control_Destroy();
+    }
+  }
+}`;
 
 const MIME_TYPES = new Map([
   [".css", "text/css; charset=utf-8"],
@@ -121,6 +206,7 @@ const MIME_TYPES = new Map([
 let lastCpuTimes = readCpuTimes();
 let latestGpu = null;
 let latestGpuError = null;
+let latestGpuTemperatureError = null;
 let hardware = getBasicHardware();
 let metrics = null;
 let history = [];
@@ -360,16 +446,35 @@ async function readWindowsGpuMetrics() {
     "$ErrorActionPreference = 'Stop'",
     "$engines = @(Get-CimInstance Win32_PerfFormattedData_GPUPerformanceCounters_GPUEngine | Select-Object Name,UtilizationPercentage)",
     "$memory = @(Get-CimInstance Win32_PerfFormattedData_GPUPerformanceCounters_GPUAdapterMemory | Select-Object Name,DedicatedUsage,SharedUsage,TotalCommitted)",
-    "$result = [pscustomobject]@{ engines = $engines; memory = $memory }",
+    "$temperatures = @(); $temperatureError = $null",
+    `$adlSource = @'\n${AMD_ADL_HELPER_SOURCE}\n'@`,
+    "try { Add-Type -TypeDefinition $adlSource -ReferencedAssemblies System.Web.Extensions -ErrorAction Stop; $temperatures = @([PulseAmdTemperature]::Read() | ConvertFrom-Json) } catch { $temperatureError = $_.Exception.Message }",
+    "$result = [pscustomobject]@{ engines = $engines; memory = $memory; temperatures = $temperatures; temperatureError = $temperatureError }",
     "$result | ConvertTo-Json -Compress -Depth 4",
-  ].join("; ");
+  ].join("\n");
   const result = await runPowerShellJson(script);
   if (!result || !Array.isArray(hardware.graphics) || hardware.graphics.length === 0) {
     throw new Error("Windows GPU counters or adapter details are unavailable");
   }
+  const hasAmdAdapter = hardware.graphics.some((adapter) => adapter.vendorId === 0x1002);
+  const temperatureError = hasAmdAdapter ? result.temperatureError : null;
+  if (temperatureError && temperatureError !== latestGpuTemperatureError) {
+    console.error(`[gpu] Could not read AMD GPU temperature: ${temperatureError}`);
+  }
+  latestGpuTemperatureError = temperatureError || null;
 
   const engines = normalizePowerShellCollection(result.engines);
   const memoryCounters = normalizePowerShellCollection(result.memory);
+  const temperatures = new Map(
+    normalizePowerShellCollection(result.temperatures)
+      .filter(
+        (sensor) =>
+          typeof sensor.pnpDeviceId === "string" &&
+          typeof sensor.temperatureC === "number" &&
+          Number.isFinite(sensor.temperatureC),
+      )
+      .map((sensor) => [sensor.pnpDeviceId.toLowerCase(), sensor.temperatureC]),
+  );
   const devices = hardware.graphics.map((adapter) => {
     const luid = adapter.luid?.toLowerCase();
     const matchingEngines = luid
@@ -402,7 +507,7 @@ async function readWindowsGpuMetrics() {
         Number.isFinite(dedicatedMemoryBytes) && dedicatedMemoryBytes > 0
           ? round(dedicatedMemoryBytes / (1024 * 1024), 1)
           : null,
-      temperatureC: null,
+      temperatureC: temperatures.get(adapter.pnpDeviceId?.toLowerCase()) ?? null,
       isSoftware: adapter.vendorId === 0x1414,
     };
   });
@@ -690,6 +795,7 @@ async function loadHardwareDetails() {
             dedicatedVideoMemoryBytes: memoryBytes,
             sharedSystemMemoryBytes: Number(dxgi?.sharedSystemMemoryBytes) || null,
             driverVersion: device.DriverVersion || null,
+            pnpDeviceId: device.PNPDeviceID || null,
             luid: typeof dxgi?.luid === "string" ? dxgi.luid : null,
             vendorId: Number(dxgi?.vendorId) || null,
             deviceId: Number(dxgi?.deviceId) || null,
