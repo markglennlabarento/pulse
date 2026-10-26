@@ -73,6 +73,10 @@ try {
   } else {
     Write-Warning "Installer is unsigned. Set PULSE_SIGN_CERT_SHA1 to a code-signing certificate installed in the Windows certificate store to sign it."
   }
+
+  $downloadFolder = Join-Path $projectRoot "downloads"
+  New-Item -ItemType Directory -Path $downloadFolder -Force | Out-Null
+  Copy-Item -LiteralPath (Join-Path $outputFolder "PulseSetup.exe") -Destination (Join-Path $downloadFolder "PulseSetup.exe") -Force
 } finally {
   Remove-Item -LiteralPath $buildTemp -Recurse -Force -ErrorAction SilentlyContinue
 }

@@ -10,3 +10,4 @@ fs.mkdirSync(output, { recursive: true });
 for (const file of ["index.html", "styles.css", "app.js", "_headers"]) {
   fs.copyFileSync(path.join(root, file), path.join(output, file));
 }
+fs.copyFileSync(path.join(root, "downloads", "PulseSetup.exe"), path.join(output, "PulseSetup.exe"));

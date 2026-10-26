@@ -423,6 +423,29 @@ button {
   margin-bottom: 23px;
 }
 
+.page-heading-actions {
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.installer-download {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 13px;
+  border-radius: 7px;
+  background: var(--purple);
+  color: #0b1018;
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.installer-download:hover {
+  background: #a0aaff;
+}
+
 .eyebrow {
   display: flex;
   align-items: center;
@@ -1618,6 +1641,11 @@ h1 {
   }
 
   .device-select {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .page-heading-actions {
     width: 100%;
   }
 

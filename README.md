@@ -26,7 +26,7 @@ To stop monitoring, press Ctrl+C in the terminal. Metrics history is stored on t
 The hosted dashboard reads metrics only from the visitor's own Windows PC. The Windows installer bundles the Node.js runtime; metrics are not uploaded to or stored by Netlify.
 
 1. Connect this repository to Netlify. The included `netlify.toml` builds and publishes only the static dashboard files.
-2. Build the Windows installer below and publish `dist\installer\PulseSetup.exe` as a GitHub Release download.
+2. Build the Windows installer below. The build updates `downloads\PulseSetup.exe`, which the site publishes for the **Download for Windows** button.
 3. Each viewer installs Pulse, enters the exact HTTPS address of your Netlify site, and chooses whether it starts at Windows sign-in.
 4. Open the Netlify site in a supported browser and choose **Connect to this PC**. The browser may ask for permission to access the local network. The agent stays bound to `127.0.0.1`.
 
