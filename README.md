@@ -23,20 +23,28 @@ To stop monitoring, press Ctrl+C in the terminal. Metrics history is stored on t
 
 ## Host the dashboard on Netlify
 
-The hosted dashboard reads metrics only from the visitor's own Windows PC. Each visitor must install Node.js 20+, download this project, and start the local agent; the website does not upload or store their metrics.
+The hosted dashboard reads metrics only from the visitor's own Windows PC. The Windows installer bundles the Node.js runtime; metrics are not uploaded to or stored by Netlify.
 
 1. Connect this repository to Netlify. The included `netlify.toml` builds and publishes only the static dashboard files.
-2. On the visitor's PC, open PowerShell in the downloaded project folder and set the origin to the exact HTTPS address of your Netlify site:
+2. Build the Windows installer below and publish `dist\installer\PulseSetup.exe` as a GitHub Release download.
+3. Each viewer installs Pulse, enters the exact HTTPS address of your Netlify site, and chooses whether it starts at Windows sign-in.
+4. Open the Netlify site in a supported browser and choose **Connect to this PC**. The browser may ask for permission to access the local network. The agent stays bound to `127.0.0.1`.
 
-   ```powershell
-   npm.cmd ci
-   $env:PULSE_DASHBOARD_ORIGIN = "https://your-site.netlify.app"
-   npm.cmd start
-   ```
+### Install Pulse on Windows
 
-3. Open the Netlify site in a supported browser and choose **Connect to this PC**. The browser may ask for permission to access the local network. The agent accepts requests only from the configured site origin and stays bound to `127.0.0.1`.
+The installer creates a tray app, bundles Node.js, starts the local monitor, and can launch it automatically when you sign in. Building it requires Inno Setup 6 and an internet connection to download the official Node.js runtime.
 
-The visitor can disconnect by closing the agent's terminal. Do not enable Tailscale Funnel or expose port 3000. For a custom domain, configure that exact HTTPS origin in `PULSE_DASHBOARD_ORIGIN` instead.
+Build an unsigned installer from PowerShell in the project folder:
+
+```powershell
+powershell.exe -ExecutionPolicy Bypass -File .\scripts\build-installer.ps1
+```
+
+Run `dist\installer\PulseSetup.exe`, enter the exact HTTPS site origin, and choose whether Pulse starts at sign-in. Use the Pulse icon in the Windows notification area to open the dashboard, restart the monitor, or quit. Logs and the agent's local shutdown token are kept in `%LOCALAPPDATA%\Pulse`.
+
+The build is unsigned unless a trusted code-signing certificate is installed in the Windows certificate store. To sign it, set `PULSE_SIGN_CERT_SHA1` to that certificate's thumbprint before running the build script. Never put a certificate's private key in the repository. An unsigned installer may show a Windows warning and is not suitable for broad public distribution.
+
+The viewer must still click **Connect to this PC** on the site; browsers do not let a website silently launch a local program. Do not enable Tailscale Funnel or expose port 3000.
 
 ## Private remote access with Tailscale
 

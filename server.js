@@ -17,6 +17,7 @@ const PUBLIC_ORIGIN = process.env.PULSE_PUBLIC_ORIGIN || "";
 const publicOriginUrl = PUBLIC_ORIGIN ? new URL(PUBLIC_ORIGIN) : null;
 const DASHBOARD_ORIGIN = process.env.PULSE_DASHBOARD_ORIGIN || "";
 const dashboardOriginUrl = DASHBOARD_ORIGIN ? new URL(DASHBOARD_ORIGIN) : null;
+const STOP_TOKEN = process.env.PULSE_AGENT_STOP_TOKEN || "";
 const SAMPLE_INTERVAL_MS = 2_000;
 const HISTORY_INTERVAL_MS = 10_000;
 const HISTORY_RETENTION_MS = 7 * 24 * 60 * 60 * 1_000;
@@ -218,7 +219,7 @@ let alerts = [];
 let pendingAlertConditions = new Map();
 let lastHistorySampleAt = 0;
 let gpuQueryInProgress = false;
-let persistenceInProgress = false;
+let persistencePromise = null;
 let shuttingDown = false;
 const eventClients = new Set();
 
@@ -708,24 +709,28 @@ function sample() {
 }
 
 async function persistHistory() {
-  if (persistenceInProgress) {
-    return;
+  while (persistencePromise) {
+    await persistencePromise;
   }
-  persistenceInProgress = true;
   const temporaryFile = `${HISTORY_FILE}.${process.pid}.tmp`;
-  try {
-    await fs.mkdir(DATA_DIRECTORY, { recursive: true });
-    await fs.writeFile(temporaryFile, JSON.stringify(history), "utf8");
-    await fs.rename(temporaryFile, HISTORY_FILE);
-  } catch (error) {
-    console.error(`[history] Could not save metrics history: ${error.message}`);
+  persistencePromise = (async () => {
     try {
-      await fs.rm(temporaryFile, { force: true });
-    } catch (cleanupError) {
-      console.error(`[history] Could not clean up temporary history file: ${cleanupError.message}`);
+      await fs.mkdir(DATA_DIRECTORY, { recursive: true });
+      await fs.writeFile(temporaryFile, JSON.stringify(history), "utf8");
+      await fs.rename(temporaryFile, HISTORY_FILE);
+    } catch (error) {
+      console.error(`[history] Could not save metrics history: ${error.message}`);
+      try {
+        await fs.rm(temporaryFile, { force: true });
+      } catch (cleanupError) {
+        console.error(`[history] Could not clean up temporary history file: ${cleanupError.message}`);
+      }
     }
+  })();
+  try {
+    await persistencePromise;
   } finally {
-    persistenceInProgress = false;
+    persistencePromise = null;
   }
 }
 
@@ -983,7 +988,7 @@ async function serveStaticFile(request, response, url) {
 }
 
 const server = http.createServer(async (request, response) => {
-  if (!["GET", "HEAD", "OPTIONS"].includes(request.method)) {
+  if (!["GET", "HEAD", "OPTIONS", "POST"].includes(request.method)) {
     sendJson(response, 405, { error: "Only GET and HEAD requests are supported." });
     return;
   }
@@ -999,6 +1004,20 @@ const server = http.createServer(async (request, response) => {
   }
 
   const url = new URL(request.url || "/", `http://${request.headers.host}`);
+  if (request.method === "POST") {
+    if (
+      url.pathname !== "/api/shutdown" ||
+      !STOP_TOKEN ||
+      request.headers.authorization !== `Bearer ${STOP_TOKEN}`
+    ) {
+      sendJson(response, 403, { error: "This local action is not authorized." });
+      return;
+    }
+    response.writeHead(202, { "Cache-Control": "no-store" });
+    response.end();
+    setImmediate(() => void shutdown("tray request"));
+    return;
+  }
   try {
     if (url.pathname === "/api/health") {
       sendJson(response, 200, {
