@@ -705,7 +705,12 @@ function bindControls() {
 }
 
 bindControls();
-if (isLocalDashboard) {
+if (location.protocol === "file:") {
+  setErrorStatus("This dashboard was opened as a file. Open the hosted HTTPS dashboard or use http://127.0.0.1:3000.");
+  if (elements.connectAgent) {
+    elements.connectAgent.hidden = true;
+  }
+} else if (isLocalDashboard) {
   initializeDashboard()
     .then(connectEvents)
     .catch((error) => {
@@ -737,7 +742,12 @@ if (isLocalDashboard) {
     } catch (error) {
       state.agentAuthorized = false;
       console.error("Could not connect to the local monitor:", error);
-      setErrorStatus("Could not connect. Start the agent and allow local-network access if prompted.");
+      const message = error.message.includes("Requests must come from this local dashboard")
+        ? "Pulse rejected this website. Restart the agent and configure the exact HTTPS dashboard address in the installer."
+        : error instanceof TypeError
+          ? "The browser could not reach Pulse. Make sure it is running and allow local-network access if prompted."
+          : `Could not connect: ${error.message}`;
+      setErrorStatus(message);
     } finally {
       elements.connectAgent.disabled = false;
       elements.connectAgent.textContent = state.agentAuthorized ? "Disconnect" : "Connect to this PC";

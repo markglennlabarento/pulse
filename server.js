@@ -15,8 +15,8 @@ const HOST = "127.0.0.1";
 const PORT = Number.parseInt(process.env.PORT || "3000", 10);
 const PUBLIC_ORIGIN = process.env.PULSE_PUBLIC_ORIGIN || "";
 const publicOriginUrl = PUBLIC_ORIGIN ? new URL(PUBLIC_ORIGIN) : null;
-const DASHBOARD_ORIGIN = process.env.PULSE_DASHBOARD_ORIGIN || "";
-const dashboardOriginUrl = DASHBOARD_ORIGIN ? new URL(DASHBOARD_ORIGIN) : null;
+let DASHBOARD_ORIGIN = process.env.PULSE_DASHBOARD_ORIGIN || "";
+let dashboardOriginUrl = DASHBOARD_ORIGIN ? new URL(DASHBOARD_ORIGIN) : null;
 const STOP_TOKEN = process.env.PULSE_AGENT_STOP_TOKEN || "";
 const SAMPLE_INTERVAL_MS = 2_000;
 const HISTORY_INTERVAL_MS = 10_000;
@@ -1092,6 +1092,19 @@ async function shutdown(signal) {
 }
 
 async function start() {
+  if (!DASHBOARD_ORIGIN && process.env.LOCALAPPDATA) {
+    try {
+      DASHBOARD_ORIGIN = (await fs.readFile(
+        path.join(process.env.LOCALAPPDATA, "Pulse", "dashboard-origin.txt"),
+        "utf8",
+      )).trim();
+      dashboardOriginUrl = DASHBOARD_ORIGIN ? new URL(DASHBOARD_ORIGIN) : null;
+    } catch (error) {
+      if (error.code !== "ENOENT") {
+        throw error;
+      }
+    }
+  }
   for (const [name, value, url] of [
     ["PULSE_PUBLIC_ORIGIN", PUBLIC_ORIGIN, publicOriginUrl],
     ["PULSE_DASHBOARD_ORIGIN", DASHBOARD_ORIGIN, dashboardOriginUrl],

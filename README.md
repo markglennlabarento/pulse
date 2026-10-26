@@ -46,6 +46,8 @@ The build is unsigned unless a trusted code-signing certificate is installed in 
 
 The viewer must still click **Connect to this PC** on the site; browsers do not let a website silently launch a local program. Do not enable Tailscale Funnel or expose port 3000.
 
+Open the dashboard from its HTTPS website, not by opening `dist\index.html` as a file. If the tray says the monitor could not start, close any existing `npm start` Pulse window, then choose **Restart monitor** from the Pulse tray menu.
+
 ## Private remote access with Tailscale
 
 Pulse reads hardware metrics from the Windows computer where it runs. To view that computer's dashboard remotely, keep Pulse on Windows and use Tailscale for private access; do not expose port 3000 directly or use Tailscale Funnel.
