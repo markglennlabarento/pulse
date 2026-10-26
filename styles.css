@@ -565,6 +565,25 @@ h1 {
   font-weight: 600;
 }
 
+.connect-agent {
+  padding: 6px 10px;
+  border: 1px solid rgb(243 183 104 / 35%);
+  border-radius: 4px;
+  background: #252116;
+  color: #edc58f;
+  cursor: pointer;
+  font: inherit;
+}
+
+.connect-agent:hover:not(:disabled) {
+  background: #352c1c;
+}
+
+.connect-agent:disabled {
+  cursor: wait;
+  opacity: .7;
+}
+
 .device-status.status-offline {
   border-color: rgb(243 183 104 / 20%);
   background: linear-gradient(90deg, rgb(152 104 47 / 11%), rgb(68 54 34 / 5%));
@@ -1604,6 +1623,7 @@ h1 {
 
   .device-status {
     align-items: flex-start;
+    flex-wrap: wrap;
     padding-top: 10px;
     padding-bottom: 10px;
     line-height: 1.55;

@@ -21,6 +21,45 @@ $env:PORT = "3001"; npm.cmd start
 
 To stop monitoring, press Ctrl+C in the terminal. Metrics history is stored on this computer in `.pulse-data\history.json` and retained for up to seven days.
 
+## Host the dashboard on Netlify
+
+The hosted dashboard reads metrics only from the visitor's own Windows PC. Each visitor must install Node.js 20+, download this project, and start the local agent; the website does not upload or store their metrics.
+
+1. Connect this repository to Netlify. The included `netlify.toml` builds and publishes only the static dashboard files.
+2. On the visitor's PC, open PowerShell in the downloaded project folder and set the origin to the exact HTTPS address of your Netlify site:
+
+   ```powershell
+   npm.cmd ci
+   $env:PULSE_DASHBOARD_ORIGIN = "https://your-site.netlify.app"
+   npm.cmd start
+   ```
+
+3. Open the Netlify site in a supported browser and choose **Connect to this PC**. The browser may ask for permission to access the local network. The agent accepts requests only from the configured site origin and stays bound to `127.0.0.1`.
+
+The visitor can disconnect by closing the agent's terminal. Do not enable Tailscale Funnel or expose port 3000. For a custom domain, configure that exact HTTPS origin in `PULSE_DASHBOARD_ORIGIN` instead.
+
+## Private remote access with Tailscale
+
+Pulse reads hardware metrics from the Windows computer where it runs. To view that computer's dashboard remotely, keep Pulse on Windows and use Tailscale for private access; do not expose port 3000 directly or use Tailscale Funnel.
+
+1. Install and sign in to Tailscale on the Windows PC and the devices that should access the dashboard. Use the device's HTTPS MagicDNS name from your tailnet (for example, `https://my-pc.example-tailnet.ts.net`).
+2. In the PowerShell window where Pulse will run, set the origin to that exact HTTPS origin and start Pulse:
+
+   ```powershell
+   $env:PULSE_PUBLIC_ORIGIN = "https://my-pc.example-tailnet.ts.net"
+   npm.cmd start
+   ```
+
+3. In a second PowerShell window on the PC, start Tailscale Serve to proxy the private HTTPS address to Pulse:
+
+   ```powershell
+   tailscale serve --bg http://127.0.0.1:3000
+   ```
+
+4. Open the HTTPS MagicDNS address on an enrolled device. Keep both Pulse and Tailscale running. Tailscale Serve is private to your tailnet; do not enable Funnel.
+
+`PULSE_PUBLIC_ORIGIN` allows only that configured HTTPS origin and host in addition to Pulse's existing localhost access. It does not make Pulse listen on a network interface; the Tailscale proxy connects to the loopback server. Use Tailscale's device/user access controls to decide who can reach the machine.
+
 ## Monitoring and API
 
 - CPU usage, processor model, logical core count, and clock speed come from local operating-system counters.
@@ -31,4 +70,4 @@ To stop monitoring, press Ctrl+C in the terminal. Metrics history is stored on t
 - Samples are collected every two seconds; chart history is saved every ten seconds. History and alerts remain on this computer.
 - CPU, GPU, and memory alerts are raised when a threshold is exceeded continuously for ten seconds. Thresholds are defined near the top of `server.js`.
 
-Pulse is intentionally local-only. It has no login, account, cloud sync, public web service, or remote telemetry upload.
+Pulse has no login or account. In the Netlify setup, the static site connects directly to the visitor's local agent; metrics and history remain on that PC and are not sent to Netlify.

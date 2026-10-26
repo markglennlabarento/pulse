@@ -1,5 +1,8 @@
 "use strict";
 
+const isLocalDashboard = ["localhost", "127.0.0.1", "[::1]"].includes(location.hostname);
+const agentBaseUrl = isLocalDashboard ? "" : "http://127.0.0.1:3000";
+
 const RANGE_LABELS = {
   "1h": "1H",
   "6h": "6H",
@@ -13,6 +16,7 @@ const elements = {
   deviceSelect: document.querySelector(".device-select"),
   status: document.querySelector(".device-status"),
   statusText: document.querySelector(".device-status > span:nth-child(2)"),
+  connectAgent: document.querySelector(".connect-agent"),
   cpuCard: document.querySelector(".metrics-grid .metric-card:nth-child(1)"),
   gpuCard: document.querySelector(".metrics-grid .metric-card:nth-child(2)"),
   memoryCard: document.querySelector(".memory-card"),
@@ -43,6 +47,7 @@ const state = {
   source: null,
   activeAlertCount: 0,
   connected: false,
+  agentAuthorized: false,
 };
 
 function formatNumber(value, maximumFractionDigits = 1) {
@@ -146,7 +151,10 @@ function setConnectedStatus(timestamp) {
 }
 
 async function requestJson(url) {
-  const response = await fetch(url, { cache: "no-store" });
+  if (!isLocalDashboard && !state.agentAuthorized) {
+    throw new Error("Connect to this PC before reading local metrics.");
+  }
+  const response = await fetch(`${agentBaseUrl}${url}`, { cache: "no-store" });
   const result = await response.json();
   if (!response.ok) {
     throw new Error(result.error || `Request failed with status ${response.status}.`);
@@ -605,7 +613,7 @@ function connectEvents() {
     return;
   }
   state.source?.close();
-  const source = new EventSource("/api/events");
+  const source = new EventSource(`${agentBaseUrl}/api/events`);
   state.source = source;
   source.addEventListener("open", () => {
     state.reconnectDelay = 1_000;
@@ -697,18 +705,45 @@ function bindControls() {
 }
 
 bindControls();
-initializeDashboard()
-  .then(connectEvents)
-  .catch((error) => {
-    setErrorStatus(`Local monitor unavailable: ${error.message}`);
-    console.error("Could not connect to the local monitor:", error);
-    const retryButton = document.createElement("button");
-    retryButton.className = "connection-retry";
-    retryButton.type = "button";
-    retryButton.textContent = "Retry connection";
-    retryButton.addEventListener("click", () => window.location.reload());
-    elements.status?.append(retryButton);
+if (isLocalDashboard) {
+  initializeDashboard()
+    .then(connectEvents)
+    .catch((error) => {
+      setErrorStatus(`Local monitor unavailable: ${error.message}`);
+      console.error("Could not connect to the local monitor:", error);
+      const retryButton = document.createElement("button");
+      retryButton.className = "connection-retry";
+      retryButton.type = "button";
+      retryButton.textContent = "Retry connection";
+      retryButton.addEventListener("click", () => window.location.reload());
+      elements.status?.append(retryButton);
+    });
+} else {
+  setErrorStatus("Install and start the Windows agent, then connect. Metrics stay on this PC.");
+  elements.connectAgent.hidden = false;
+  elements.connectAgent.addEventListener("click", async () => {
+    if (state.agentAuthorized) {
+      state.source?.close();
+      state.agentAuthorized = false;
+      window.location.reload();
+      return;
+    }
+    elements.connectAgent.disabled = true;
+    elements.connectAgent.textContent = "Connecting…";
+    state.agentAuthorized = true;
+    try {
+      await initializeDashboard();
+      connectEvents();
+    } catch (error) {
+      state.agentAuthorized = false;
+      console.error("Could not connect to the local monitor:", error);
+      setErrorStatus("Could not connect. Start the agent and allow local-network access if prompted.");
+    } finally {
+      elements.connectAgent.disabled = false;
+      elements.connectAgent.textContent = state.agentAuthorized ? "Disconnect" : "Connect to this PC";
+    }
   });
+}
 
 window.setInterval(() => {
   if (state.metrics && state.connected) {

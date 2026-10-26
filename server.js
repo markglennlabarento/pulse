@@ -13,6 +13,10 @@ const DATA_DIRECTORY = path.join(ROOT, ".pulse-data");
 const HISTORY_FILE = path.join(DATA_DIRECTORY, "history.json");
 const HOST = "127.0.0.1";
 const PORT = Number.parseInt(process.env.PORT || "3000", 10);
+const PUBLIC_ORIGIN = process.env.PULSE_PUBLIC_ORIGIN || "";
+const publicOriginUrl = PUBLIC_ORIGIN ? new URL(PUBLIC_ORIGIN) : null;
+const DASHBOARD_ORIGIN = process.env.PULSE_DASHBOARD_ORIGIN || "";
+const dashboardOriginUrl = DASHBOARD_ORIGIN ? new URL(DASHBOARD_ORIGIN) : null;
 const SAMPLE_INTERVAL_MS = 2_000;
 const HISTORY_INTERVAL_MS = 10_000;
 const HISTORY_RETENTION_MS = 7 * 24 * 60 * 60 * 1_000;
@@ -823,25 +827,50 @@ function sendJson(response, statusCode, payload) {
 
 function getRequestOrigin(request) {
   const host = request.headers.host || "";
-  const hostname = host.startsWith("[")
-    ? host.slice(1, host.indexOf("]"))
-    : host.split(":")[0];
-  if (!["localhost", "127.0.0.1", "::1"].includes(hostname)) {
+  let url;
+  try {
+    url = new URL(`http://${host}`);
+  } catch {
     return null;
   }
-  return `http://${host}`;
+  if (url.username || url.password || url.pathname !== "/" || url.search || url.hash) {
+    return null;
+  }
+  const isLocalHost = ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname);
+  const isConfiguredPublicHost =
+    publicOriginUrl && url.host.toLowerCase() === publicOriginUrl.host.toLowerCase();
+  return isLocalHost || isConfiguredPublicHost ? `http://${url.host}` : null;
 }
 
 function isAllowedRequest(request) {
-  const origin = getRequestOrigin(request);
-  if (!origin) {
+  const requestOrigin = getRequestOrigin(request);
+  if (!requestOrigin) {
     return false;
   }
-  const requestOrigin = request.headers.origin;
-  if (!requestOrigin || requestOrigin === "null") {
+  const originHeader = request.headers.origin;
+  if (!originHeader) {
     return true;
   }
-  return requestOrigin === origin;
+  if (originHeader === "null") {
+    return !DASHBOARD_ORIGIN;
+  }
+  return (
+    originHeader === requestOrigin ||
+    originHeader === PUBLIC_ORIGIN ||
+    originHeader === DASHBOARD_ORIGIN
+  );
+}
+
+function addCorsHeaders(request, response) {
+  const origin = request.headers.origin;
+  if (origin !== PUBLIC_ORIGIN && origin !== DASHBOARD_ORIGIN) {
+    return;
+  }
+  response.setHeader("Access-Control-Allow-Origin", origin);
+  response.setHeader("Access-Control-Allow-Methods", "GET, HEAD, OPTIONS");
+  response.setHeader("Access-Control-Allow-Headers", "Cache-Control, Pragma");
+  response.setHeader("Access-Control-Allow-Private-Network", "true");
+  response.setHeader("Vary", "Origin");
 }
 
 function rangeMilliseconds(value) {
@@ -954,12 +983,18 @@ async function serveStaticFile(request, response, url) {
 }
 
 const server = http.createServer(async (request, response) => {
-  if (!["GET", "HEAD"].includes(request.method)) {
+  if (!["GET", "HEAD", "OPTIONS"].includes(request.method)) {
     sendJson(response, 405, { error: "Only GET and HEAD requests are supported." });
     return;
   }
   if (!isAllowedRequest(request)) {
     sendJson(response, 403, { error: "Requests must come from this local dashboard." });
+    return;
+  }
+  addCorsHeaders(request, response);
+  if (request.method === "OPTIONS") {
+    response.writeHead(204);
+    response.end();
     return;
   }
 
@@ -1038,6 +1073,23 @@ async function shutdown(signal) {
 }
 
 async function start() {
+  for (const [name, value, url] of [
+    ["PULSE_PUBLIC_ORIGIN", PUBLIC_ORIGIN, publicOriginUrl],
+    ["PULSE_DASHBOARD_ORIGIN", DASHBOARD_ORIGIN, dashboardOriginUrl],
+  ]) {
+    if (
+      url &&
+      (url.protocol !== "https:" ||
+        url.origin !== value ||
+        url.pathname !== "/" ||
+        url.search ||
+        url.hash ||
+        url.username ||
+        url.password)
+    ) {
+      throw new Error(`${name} must be an HTTPS origin without a path, query, or credentials.`);
+    }
+  }
   if (!Number.isInteger(PORT) || PORT < 1 || PORT > 65535) {
     throw new Error("PORT must be an integer between 1 and 65535.");
   }
