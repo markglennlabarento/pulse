@@ -40,7 +40,7 @@ The hosted dashboard reads metrics only from the visitor's own Windows PC. The W
 
 ### Install Pulse on Windows
 
-The installer creates a tray app, bundles the dashboard and Node.js, starts the local monitor, and can launch it automatically when you sign in. **Open dashboard** opens the bundled dashboard on this PC; **Open hosted dashboard** opens the configured HTTPS site. Building it requires Inno Setup 6 and an internet connection to download the official Node.js runtime.
+The installer creates a tray app, bundles the dashboard and Node.js, starts the local monitor, and can launch it automatically when you sign in. **Open dashboard** opens the configured HTTPS site, which connects to the local monitor. Building it requires Inno Setup 6 and an internet connection to download the official Node.js runtime.
 
 Build an unsigned installer from PowerShell in the project folder:
 
