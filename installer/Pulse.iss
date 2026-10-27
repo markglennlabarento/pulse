@@ -94,7 +94,7 @@ begin
     'Dashboard address', 'Connect Pulse to your Netlify site',
     'Paste the exact HTTPS origin shown in your browser address bar. Do not include a page path.');
   OriginPage.Add('HTTPS site origin:', False);
-  OriginPage.Values[0] := 'https://6adf453323b97c9877a8401b--pulsesystemmonitoring.netlify.app';
+  OriginPage.Values[0] := 'https://pulsesystemmonitoring.netlify.app';
 end;
 
 function NextButtonClick(CurPageID: Integer): Boolean;
