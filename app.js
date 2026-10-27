@@ -28,6 +28,7 @@ const elements = {
   alertBadge: document.querySelector(".alert-count"),
   notificationDot: document.querySelector(".notification-dot"),
   notificationButton: document.querySelector(".topbar-bell"),
+  themeToggle: document.querySelector(".theme-toggle"),
   navLinks: [...document.querySelectorAll(".side-nav .nav-item")],
   agentStatus: document.querySelector(".agent-card-top .agent-online"),
   agentDescription: document.querySelector(".agent-card p"),
@@ -37,6 +38,27 @@ const elements = {
   operatingSystemDetails: document.querySelector(".system-details > div:nth-child(3) dd"),
   uptimeDetails: document.querySelector(".system-details > div:nth-child(4) dd"),
 };
+
+function setTheme(theme) {
+  const isLight = theme === "light";
+  document.documentElement.dataset.theme = theme;
+  elements.themeToggle?.setAttribute("aria-pressed", String(isLight));
+  elements.themeToggle?.setAttribute("title", `Switch to ${isLight ? "dark" : "light"} mode`);
+  document.querySelector('meta[name="theme-color"]')?.setAttribute("content", isLight ? "#f4f6fb" : "#0b1018");
+}
+
+function initializeTheme() {
+  let theme = "dark";
+  try {
+    const savedTheme = localStorage.getItem("pulse-theme");
+    if (savedTheme === "light" || savedTheme === "dark") {
+      theme = savedTheme;
+    }
+  } catch (error) {
+    console.error("Could not load the saved theme:", error);
+  }
+  setTheme(theme);
+}
 
 const state = {
   range: "6h",
@@ -663,6 +685,16 @@ function connectEvents() {
 }
 
 function bindControls() {
+  elements.themeToggle?.addEventListener("click", () => {
+    const theme = document.documentElement.dataset.theme === "light" ? "dark" : "light";
+    setTheme(theme);
+    try {
+      localStorage.setItem("pulse-theme", theme);
+    } catch (error) {
+      console.error("Could not save the selected theme:", error);
+    }
+  });
+
   elements.rangeButtons.forEach((button) => {
     const range = button.textContent.trim().toLowerCase();
     button.setAttribute("aria-pressed", String(range === state.range));
@@ -704,6 +736,7 @@ function bindControls() {
   });
 }
 
+initializeTheme();
 bindControls();
 if (location.protocol === "file:") {
   setErrorStatus("This dashboard was opened as a file. Open the hosted HTTPS dashboard or use http://127.0.0.1:3000.");
