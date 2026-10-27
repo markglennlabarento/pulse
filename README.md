@@ -2,6 +2,13 @@
 
 Pulse is a local-only Windows dashboard for monitoring CPU, GPU, and memory usage. The monitor binds to `127.0.0.1` and does not send system metrics to an online service.
 
+## Project layout
+
+- `index.html` contains the dashboard markup.
+- `css\style.css` imports the reset, theme variables, base styles, and components from `css\`.
+- `js\main.js` handles the dashboard; `js\utils.js` contains shared formatting helpers.
+- `server.js` serves the dashboard and the local monitoring API.
+
 ## Run it
 
 Install Node.js 20 or newer, then run these commands from the project folder:

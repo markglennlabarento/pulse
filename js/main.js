@@ -1,5 +1,14 @@
 "use strict";
 
+const {
+  formatNumber,
+  formatDuration,
+  formatTime,
+  formatRelativeTime,
+  setText,
+  formatGraphicsSummary,
+} = window.PulseUtils;
+
 const isLocalDashboard = ["localhost", "127.0.0.1", "[::1]"].includes(location.hostname);
 const agentBaseUrl = isLocalDashboard ? "" : "http://127.0.0.1:3000";
 
@@ -43,7 +52,9 @@ function setTheme(theme) {
   const isLight = theme === "light";
   document.documentElement.dataset.theme = theme;
   elements.themeToggle?.setAttribute("aria-pressed", String(isLight));
-  elements.themeToggle?.setAttribute("title", `Switch to ${isLight ? "dark" : "light"} mode`);
+  const action = `Switch to ${isLight ? "dark" : "light"} mode`;
+  elements.themeToggle?.setAttribute("aria-label", action);
+  elements.themeToggle?.setAttribute("title", action);
   document.querySelector('meta[name="theme-color"]')?.setAttribute("content", isLight ? "#f4f6fb" : "#0b1018");
 }
 
@@ -71,55 +82,6 @@ const state = {
   connected: false,
   agentAuthorized: false,
 };
-
-function formatNumber(value, maximumFractionDigits = 1) {
-  return new Intl.NumberFormat(undefined, { maximumFractionDigits }).format(value);
-}
-
-function formatDuration(totalSeconds) {
-  const days = Math.floor(totalSeconds / 86_400);
-  const hours = Math.floor((totalSeconds % 86_400) / 3_600);
-  const minutes = Math.floor((totalSeconds % 3_600) / 60);
-  return `${days}d ${hours}h ${minutes}m`;
-}
-
-function formatTime(timestamp) {
-  return new Intl.DateTimeFormat(undefined, {
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  }).format(new Date(timestamp));
-}
-
-function formatRelativeTime(timestamp) {
-  const elapsedSeconds = Math.max(0, Math.round((Date.now() - Date.parse(timestamp)) / 1_000));
-  if (elapsedSeconds < 5) {
-    return "just now";
-  }
-  if (elapsedSeconds < 60) {
-    return `${elapsedSeconds} seconds ago`;
-  }
-  const minutes = Math.floor(elapsedSeconds / 60);
-  if (minutes < 60) {
-    return `${minutes} ${minutes === 1 ? "minute" : "minutes"} ago`;
-  }
-  return `${Math.floor(minutes / 60)} hours ago`;
-}
-
-function setText(element, value) {
-  if (element) {
-    element.textContent = value;
-  }
-}
-
-function formatGraphicsSummary(graphics) {
-  if (!Array.isArray(graphics) || graphics.length === 0) {
-    return "GPU information unavailable";
-  }
-  return graphics
-    .map((gpu) => `${gpu.name} (${gpu.isDedicated ? "Dedicated" : "Integrated"})`)
-    .join(" · ");
-}
 
 function setErrorStatus(message) {
   state.connected = false;

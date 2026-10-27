@@ -9,6 +9,6 @@
   "scripts": {
     "start": "node server.js",
     "build": "node scripts/build-static.js",
-    "check": "node --check server.js && node --check app.js"
+    "check": "node --check server.js && node --check js/main.js && node --check js/utils.js"
   }
 }

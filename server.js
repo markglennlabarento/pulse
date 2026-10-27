@@ -940,7 +940,18 @@ async function serveStaticFile(request, response, url) {
     return;
   }
   const relativePath = pathname === "/" ? "index.html" : pathname.slice(1);
-  if (!["index.html", "styles.css", "app.js"].includes(relativePath)) {
+  if (
+    ![
+      "index.html",
+      "css/style.css",
+      "css/reset.css",
+      "css/variables.css",
+      "css/base.css",
+      "css/components.css",
+      "js/main.js",
+      "js/utils.js",
+    ].includes(relativePath)
+  ) {
     sendJson(response, 404, { error: "File not found." });
     return;
   }
