@@ -32,6 +32,7 @@ Name: "startup"; Description: "Start Pulse when I sign in to Windows"; GroupDesc
 
 [Files]
 Source: "..\index.html"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\assets\*"; DestDir: "{app}\assets"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\css\*"; DestDir: "{app}\css"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\js\*"; DestDir: "{app}\js"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\server.js"; DestDir: "{app}"; Flags: ignoreversion

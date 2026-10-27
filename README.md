@@ -5,6 +5,7 @@ Pulse is a local-only Windows dashboard for monitoring CPU, GPU, and memory usag
 ## Project layout
 
 - `index.html` contains the dashboard markup.
+- `assets\icons\favicon.svg` contains the browser tab icon.
 - `css\style.css` imports the reset, theme variables, base styles, and components from `css\`.
 - `js\main.js` handles the dashboard; `js\utils.js` contains shared formatting helpers.
 - `server.js` serves the dashboard and the local monitoring API.

@@ -943,6 +943,7 @@ async function serveStaticFile(request, response, url) {
   if (
     ![
       "index.html",
+      "assets/icons/favicon.svg",
       "css/style.css",
       "css/reset.css",
       "css/variables.css",

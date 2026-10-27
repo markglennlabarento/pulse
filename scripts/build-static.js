@@ -10,7 +10,7 @@ fs.mkdirSync(output, { recursive: true });
 for (const file of ["index.html", "_headers"]) {
   fs.copyFileSync(path.join(root, file), path.join(output, file));
 }
-for (const directory of ["css", "js"]) {
+for (const directory of ["assets", "css", "js"]) {
   fs.cpSync(path.join(root, directory), path.join(output, directory), { recursive: true });
 }
 fs.copyFileSync(path.join(root, "downloads", "PulseSetup.exe"), path.join(output, "PulseSetup.exe"));
