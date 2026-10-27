@@ -38,6 +38,7 @@ const elements = {
   notificationDot: document.querySelector(".notification-dot"),
   notificationButton: document.querySelector(".topbar-bell"),
   themeToggle: document.querySelector(".theme-toggle"),
+  installerDownload: document.querySelector(".installer-download"),
   navLinks: [...document.querySelectorAll(".side-nav .nav-item")],
   agentStatus: document.querySelector(".agent-card-top .agent-online"),
   agentDescription: document.querySelector(".agent-card p"),
@@ -47,6 +48,10 @@ const elements = {
   operatingSystemDetails: document.querySelector(".system-details > div:nth-child(3) dd"),
   uptimeDetails: document.querySelector(".system-details > div:nth-child(4) dd"),
 };
+
+if (isLocalDashboard && elements.installerDownload) {
+  elements.installerDownload.hidden = true;
+}
 
 function setTheme(theme) {
   const isLight = theme === "light";

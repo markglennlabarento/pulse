@@ -41,6 +41,7 @@ $icon.Text = "Pulse system monitor"
 $icon.Visible = $true
 $menu = New-Object System.Windows.Forms.ContextMenuStrip
 $openItem = $menu.Items.Add("Open dashboard")
+$hostedItem = $menu.Items.Add("Open hosted dashboard")
 $restartItem = $menu.Items.Add("Restart monitor")
 $menu.Items.Add("-") | Out-Null
 $exitItem = $menu.Items.Add("Exit Pulse")
@@ -59,6 +60,25 @@ function Start-Agent {
     -RedirectStandardOutput $script:stdoutPath `
     -RedirectStandardError $script:stderrPath `
     -PassThru
+}
+
+function Open-LocalDashboard {
+  Start-Agent
+  for ($attempt = 0; $attempt -lt 30; $attempt++) {
+    if ($script:agentProcess.HasExited) {
+      break
+    }
+    try {
+      $response = Invoke-WebRequest -UseBasicParsing -Uri "http://127.0.0.1:3000/" -Method Head -TimeoutSec 1
+      if ($response.StatusCode -eq 200) {
+        Start-Process "http://127.0.0.1:3000/"
+        return
+      }
+    } catch {
+      Start-Sleep -Milliseconds 500
+    }
+  }
+  $script:icon.ShowBalloonTip(5000, "Pulse dashboard unavailable", "The local dashboard did not start. Choose Restart monitor and try again.", [System.Windows.Forms.ToolTipIcon]::Warning)
 }
 
 function Stop-Agent {
@@ -80,7 +100,8 @@ function Stop-Agent {
   }
 }
 
-$openItem.add_Click({ Start-Process $script:dashboardOrigin })
+$openItem.add_Click({ Open-LocalDashboard })
+$hostedItem.add_Click({ Start-Process $script:dashboardOrigin })
 $restartItem.add_Click({
   Stop-Agent
   Start-Agent

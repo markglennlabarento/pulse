@@ -31,6 +31,9 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "startup"; Description: "Start Pulse when I sign in to Windows"; GroupDescription: "Startup:"; Flags: checkedonce
 
 [Files]
+Source: "..\index.html"; DestDir: "{app}"; Flags: ignoreversion
+Source: "..\css\*"; DestDir: "{app}\css"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "..\js\*"; DestDir: "{app}\js"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "..\server.js"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\package.json"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\scripts\PulseTray.ps1"; DestDir: "{app}"; Flags: ignoreversion
